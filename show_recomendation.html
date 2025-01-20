@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TV Show Recommendation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #result {
+            margin-top: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>TV Show Recommendation</h1>
+    <label for="tv_show">Enter TV Show Name:</label>
+    <input type="text" id="tv_show" placeholder="e.g., Breaking Bad">
+    <button onclick="getRecommendations()">Get Recommendations</button>
+
+    <div id="result"></div>
+
+    <script>
+        function getRecommendations() {
+            const tvShowName = document.getElementById('tv_show').value;
+            if (!tvShowName) {
+                alert("Please enter a TV show name.");
+                return;
+            }
+
+            fetch(`http://127.0.0.1:5000/recommend?tv_show=${tvShowName}`)
+                .then(response => response.json())
+                .then(data => {
+                    let resultDiv = document.getElementById('result');
+                    if (data.error) {
+                        resultDiv.innerHTML = `<p>${data.error}</p>`;
+                    } else {
+                        let table = '<table><tr><th>Show Name</th><th>Rating</th><th>Votes</th><th>Start Year</th><th>End Year</th></tr>';
+                        data.forEach(show => {
+                            table += `<tr>
+                                <td>${show['Shows Name']}</td>
+                                <td>${show['Rating']}</td>
+                                <td>${show['votes']}</td>
+                                <td>${show['start_year']}</td>
+                                <td>${show['end_year']}</td>
+                            </tr>`;
+                        });
+                        table += '</table>';
+                        resultDiv.innerHTML = table;
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('result').innerHTML = `<p>Error fetching data. Please try again later.</p>`;
+                    console.error('Error:', error);
+                });
+        }
+    </script>
+
+</body>
+</html>
