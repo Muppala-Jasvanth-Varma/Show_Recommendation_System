@@ -4,19 +4,15 @@ from sklearn.preprocessing import MinMaxScaler
 from sklearn.metrics.pairwise import cosine_similarity
 from flask import Flask, request, jsonify
 
-# Initialize Flask application
 app = Flask(__name__)
 
-# Load and preprocess the data
 data = pd.read_csv(r"W:\FOML\project\imdb_Top_250_TV_Shows.csv")
 
-# Clean 'Episodes' column by removing 'eps' and converting to int
 data['Episodes'] = data['Episodes'].str.replace('eps', '').astype(int)
 
-# Rename the column for votes
 data.rename(columns={'Rating given by people': 'votes'}, inplace=True)
 
-# Function to convert votes from string to numerical format
+# convert votes from string to numerical format
 def convert_votes(votes):
     votes = votes.replace('(', '').replace(')', '')
     if 'M' in votes:
@@ -28,20 +24,20 @@ def convert_votes(votes):
     else:
         return int(votes)
 
-# Apply the votes conversion function
+
 data['votes'] = data['votes'].apply(convert_votes)
 
 # Rename the 'Release Year' column to 'year'
 data.rename(columns={'Release Year': 'year'}, inplace=True)
 
-# Function to extract start year from year
+# extract start year from year
 def start_year(year):
     if '–' in year:
         return year.split('–')[0].strip()  # Extract start year
     else:
         return year.strip()  # Return year as it is
 
-# Function to extract end year from year
+# extract end year from year
 def end_year(year):
     if '–' in year:
         try:
@@ -51,15 +47,15 @@ def end_year(year):
     else:
         return year.strip()  # Return the same year if there's no range
 
-# Apply the functions to extract 'start_year' and 'end_year'
+# extract 'start_year' and 'end_year'
 data['start_year'] = data['year'].apply(start_year)
 
 # Handle cases where 'start_year' or 'end_year' might be empty strings or invalid
-data['start_year'] = pd.to_numeric(data['start_year'], errors='coerce')  # Convert to numeric, invalid will be NaN
+data['start_year'] = pd.to_numeric(data['start_year'], errors='coerce') 
 
 # Extract 'end_year' and convert to numeric, invalid values will be handled
 data['end_year'] = data['year'].apply(end_year)
-data['end_year'] = pd.to_numeric(data['end_year'], errors='coerce')  # Convert to numeric, invalid will be NaN
+data['end_year'] = pd.to_numeric(data['end_year'], errors='coerce')  
 
 # Fill missing 'end_year' values with 'start_year' values
 data['end_year'] = data['end_year'].fillna(data['start_year'])
