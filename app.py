@@ -27,46 +27,36 @@ def convert_votes(votes):
 
 data['votes'] = data['votes'].apply(convert_votes)
 
-# Rename the 'Release Year' column to 'year'
 data.rename(columns={'Release Year': 'year'}, inplace=True)
 
-# extract start year from year
 def start_year(year):
     if '–' in year:
-        return year.split('–')[0].strip()  # Extract start year
+        return year.split('–')[0].strip()  
     else:
-        return year.strip()  # Return year as it is
+        return year.strip() 
 
-# extract end year from year
 def end_year(year):
     if '–' in year:
         try:
-            return year.split('–')[1].strip()  # Extract end year
+            return year.split('–')[1].strip()  
         except IndexError:
-            return None  # Return None if there's no valid end year
+            return None  
     else:
-        return year.strip()  # Return the same year if there's no range
+        return year.strip()  
 
-# extract 'start_year' and 'end_year'
 data['start_year'] = data['year'].apply(start_year)
 
-# Handle cases where 'start_year' or 'end_year' might be empty strings or invalid
 data['start_year'] = pd.to_numeric(data['start_year'], errors='coerce') 
 
-# Extract 'end_year' and convert to numeric, invalid values will be handled
 data['end_year'] = data['year'].apply(end_year)
 data['end_year'] = pd.to_numeric(data['end_year'], errors='coerce')  
 
-# Fill missing 'end_year' values with 'start_year' values
 data['end_year'] = data['end_year'].fillna(data['start_year'])
 
-# Drop the original 'year' column
 data.drop(columns=['year'], inplace=True)
 
-# Calculate the 'duration' between start_year and end_year
 data['duration'] = data['end_year'] - data['start_year']
 
-# Normalize the features using MinMaxScaler
 scaler = MinMaxScaler()
 data[['votes', 'duration']] = scaler.fit_transform(data[['votes', 'duration']])
 
@@ -78,22 +68,18 @@ similarity_matrix = cosine_similarity(features)
 
 # Function to recommend TV shows based on the selected show
 def recommend_shows(show_name, top_n=5):
-    # Get the index of the selected show
     idx = data[data['Shows Name'] == show_name].index[0]
     
-    # Get similarity scores for the selected show
     similarity_scores = list(enumerate(similarity_matrix[idx]))
     
-    # Sort shows based on similarity score (descending order)
     similarity_scores = sorted(similarity_scores, key=lambda x: x[1], reverse=True)
     
     # Get the top N most similar shows
-    recommended_indices = [i[0] for i in similarity_scores[1:top_n+1]]  # Use top_n here
+    recommended_indices = [i[0] for i in similarity_scores[1:top_n+1]]  
     
     # Return the recommended shows
     return data.iloc[recommended_indices][['Shows Name', 'Rating', 'votes', 'start_year', 'end_year']]
 
-# Route for the recommendation API
 @app.route('/recommend', methods=['GET'])
 def recommend():
     tv_show_name = request.args.get('tv_show')
